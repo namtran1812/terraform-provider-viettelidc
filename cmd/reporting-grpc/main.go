@@ -10,6 +10,7 @@ import (
 	"github.com/vmware/terraform-provider-vcd/v3/internal/config"
 	"github.com/vmware/terraform-provider-vcd/v3/internal/database"
 	"github.com/vmware/terraform-provider-vcd/v3/internal/grpcreporting"
+	"github.com/vmware/terraform-provider-vcd/v3/internal/tlsconfig"
 	"google.golang.org/grpc"
 )
 
@@ -35,7 +36,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	grpcServer := grpc.NewServer()
+	creds, err := tlsconfig.ServerCredentials(
+		"certs/reporting.crt",
+		"certs/reporting.key",
+		"certs/ca.crt",
+	)
+	if err != nil {
+		logger.Error("reporting TLS setup failed", "error", err)
+		os.Exit(1)
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.Creds(creds),
+	)
 	reportingv1.RegisterReportingServiceServer(grpcServer, grpcreporting.New(database.NewServerStore(pool)))
 
 	logger.Info("reporting grpc server started", "addr", ":50052")

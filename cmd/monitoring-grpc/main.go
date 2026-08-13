@@ -14,6 +14,7 @@ import (
 	"github.com/vmware/terraform-provider-vcd/v3/internal/grpcmonitoring"
 	"github.com/vmware/terraform-provider-vcd/v3/internal/monitoring"
 	"github.com/vmware/terraform-provider-vcd/v3/internal/search"
+	"github.com/vmware/terraform-provider-vcd/v3/internal/tlsconfig"
 	"google.golang.org/grpc"
 )
 
@@ -44,7 +45,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	grpcServer := grpc.NewServer()
+	creds, err := tlsconfig.ServerCredentials(
+		"certs/monitoring.crt",
+		"certs/monitoring.key",
+		"certs/ca.crt",
+	)
+	if err != nil {
+		logger.Error("monitoring TLS setup failed", "error", err)
+		os.Exit(1)
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.Creds(creds),
+	)
 	monitoringv1.RegisterMonitoringServiceServer(grpcServer, grpcmonitoring.New(
 		monitoring.Checker{Timeout: 2 * time.Second, Workers: 256},
 		postgresStore,
