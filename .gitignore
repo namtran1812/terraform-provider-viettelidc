@@ -48,3 +48,8 @@ vcd/*-out-*.txt
 go.work
 
 
+
+# Local mTLS development certificates
+certs/*.key
+certs/*.csr
+certs/*.srl
