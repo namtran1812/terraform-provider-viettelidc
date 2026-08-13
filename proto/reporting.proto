@@ -1,0 +1,6 @@
+syntax = "proto3";
+package reporting.v1;
+option go_package = "github.com/vmware/terraform-provider-vcd/v3/gen/reporting/v1;reportingv1";
+message UptimeRequest { string server_id = 1; string from = 2; string to = 3; }
+message UptimeResponse { string server_id = 1; int64 checks = 2; int64 successful = 3; double uptime_percent = 4; }
+service ReportingService { rpc GetUptime(UptimeRequest) returns (UptimeResponse); }
